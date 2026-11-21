@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RansomSim | Ransomware Incident Response Digital Twin</title>
+<style>
+:root{--bg:#edf0f4;--card:#fff;--tx:#10222f;--mut:#5a6c7a;--bd:#d5dce4;--ac:#0b6e8a;--ok:#1f8f5f;--warn:#c27a0a;--bad:#c93a2e;--lnk:#b3bfcb}
+[data-theme=dark]{--bg:#0d1a26;--card:#142636;--tx:#e4edf4;--mut:#8ea3b4;--bd:#25394b;--ac:#3fb6d8;--ok:#43c795;--warn:#f0b341;--bad:#ff6b5d;--lnk:#35506a}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--card);border-bottom:1px solid var(--bd)}
+h1{font:700 19px Georgia,serif;margin:0}h1 small{display:block;font:400 12px "Segoe UI",sans-serif;color:var(--mut)}
+main{display:grid;grid-template-columns:285px minmax(0,1fr) 305px;gap:12px;padding:12px}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px}
+.card h2{font:600 14px Georgia,serif;margin:0 0 8px}
+button,select,input{font:inherit;color:var(--tx)}
+button{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--ac)}button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff}
+button.w{border-color:var(--warn)}button.d{border-color:var(--bad);color:var(--bad)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.row>button{flex:1 1 auto}
+label{display:block;font-size:12px;color:var(--mut);margin-top:8px}label b{float:right;color:var(--tx)}
+input[type=range]{width:100%}input[type=text],select{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:6px}
+.sc{display:block;width:100%;text-align:left;margin:4px 0}.sc.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,var(--card))}
+.desc{font-size:12px;color:var(--mut);margin:6px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}
+.k{background:var(--bg);border-radius:8px;padding:7px 9px}.k span{font-size:11px;color:var(--mut)}.k b{display:block;font-size:19px}
+.badge{padding:2px 9px;border-radius:99px;font-weight:600;font-size:12px;color:#fff;background:var(--ok)}
+#net{width:100%;height:auto;background:var(--bg);border-radius:8px}
+.lk{stroke:var(--lnk);stroke-width:2}.lk.hot{stroke:var(--bad);stroke-dasharray:6 5;animation:dash .6s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-11}}@keyframes pl{50%{opacity:.5}}
+.nd{cursor:pointer}.nd circle{fill:var(--card);stroke:var(--ok);stroke-width:3}
+.nd.inf circle{stroke:var(--warn);fill:color-mix(in srgb,var(--warn) 28%,var(--card));animation:pl 1s infinite}
+.nd.enc circle{stroke:var(--bad);fill:color-mix(in srgb,var(--bad) 32%,var(--card))}
+.nd.rest circle{stroke:var(--ac);fill:color-mix(in srgb,var(--ac) 22%,var(--card))}
+.nd.iso circle{stroke-dasharray:5 4}.nd.sel circle{stroke-width:6}
+.nd .c{font:700 11px sans-serif;fill:var(--tx);text-anchor:middle}.nd .lb{font:11px sans-serif;fill:var(--mut);text-anchor:middle}
+.leg{font-size:12px;color:var(--mut);display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;border:3px solid}
+#ch{width:100%;height:150px;background:var(--bg);border-radius:8px}#ch polyline{fill:none;stroke-width:2}
+#log{height:210px;overflow:auto;font-size:12px;background:var(--bg);border-radius:8px;padding:6px}
+#log div{padding:2px 0;border-bottom:1px solid var(--bd)}.warn{color:var(--warn)}.bad{color:var(--bad)}.ok{color:var(--ok)}
+#report h3{margin:10px 0 4px;font-size:13px}#report li{margin:3px 0}
+.st{font-size:12px;color:var(--mut);margin-top:4px;word-break:break-word}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+ <h1>RansomSim<small>Ransomware incident response digital twin: test decisions, watch the business impact</small></h1>
+ <div class="row" style="margin:0">
+  <span id="threat" class="badge">Threat: none</span>
+  <button id="theme" aria-label="Toggle light and dark mode">Dark mode</button>
+ </div>
+</header>
+<main>
+<section>
+ <div class="card"><h2>1. Choose a scenario</h2><div id="scs"></div><p class="desc" id="scd"></p></div>
+ <div class="card"><h2>2. Set your defences</h2>
+  <label>EDR coverage <b id="edrv"></b></label><input type="range" id="edr" min="0" max="100" value="40">
+  <label>Network segmentation <b id="segv"></b></label><input type="range" id="seg" min="0" max="100" value="30">
+  <label>SOC analysts on shift <b id="anv"></b></label><input type="range" id="an" min="0" max="8" value="2">
+  <label>Age of last backup (hours) <b id="agev"></b></label><input type="range" id="age" min="1" max="168" value="24">
+  <label><input type="checkbox" id="imm"> Immutable / offline backups</label>
+  <label>Speed <b id="spv"></b></label><input type="range" id="sp" min="1" max="5" value="3">
+  <div class="row"><button class="p" id="go">Start</button><button id="step">Step +1h</button><button id="rst">Reset</button></div>
+ </div>
+ <div class="card"><h2>3. Data: import and export</h2>
+  <div class="row"><button id="imp">Import CSV / JSON</button><button id="smp">Sample file</button></div>
+  <input type="file" id="file" accept=".csv,.json" hidden>
+  <div class="row"><button id="ex1">Export timeline CSV</button><button id="ex2">Export report JSON</button></div>
+  <p class="desc">Import telemetry events (t,node,event) or a full config. Export every run for your decision record.</p>
+ </div>
+ <div class="card"><h2>4. Digital twin link</h2>
+  <label>Live feed URL (JSON array, polled every 5s)</label><input type="text" id="feed" placeholder="https://your-siem/api/events">
+  <div class="row"><button id="live">Start live feed</button></div>
+  <label>Command webhook (decisions are POSTed here)</label><input type="text" id="hook" placeholder="https://your-soar/webhook">
+  <label>Inject a SIEM event now</label>
+  <div class="row"><select id="inode" style="flex:1"></select><select id="iev" style="flex:1"><option>infected</option><option>encrypted</option><option>detect</option><option>isolate</option><option>clean</option></select></div>
+  <div class="row"><button id="inj">Inject event</button></div>
+  <div class="st" id="tw">Twin link idle.</div>
+ </div>
+</section>
+
+<section>
+ <div class="card"><h2>Live status</h2><div class="kpis" id="kpis"></div></div>
+ <div class="card"><h2>Enterprise network (click a node)</h2>
+  <svg id="net" viewBox="0 0 740 420" role="img" aria-label="Network map"></svg>
+  <div class="leg"><span><i style="border-color:var(--ok)"></i>Clean</span><span><i style="border-color:var(--warn)"></i>Infected</span><span><i style="border-color:var(--bad)"></i>Encrypted</span><span><i style="border-color:var(--ac)"></i>Restoring</span><span>Dashed ring: isolated</span></div>
+ </div>
+ <div class="card"><h2>Impact over time</h2><svg id="ch" viewBox="0 0 520 150"></svg>
+  <div class="leg"><span><i style="border-color:var(--warn)"></i>% infected</span><span><i style="border-color:var(--bad)"></i>% encrypted</span><span><i style="border-color:var(--ac)"></i>cumulative cost</span></div></div>
+ <div class="card" id="report" hidden></div>
+</section>
+
+<section>
+ <div class="card"><h2>Decisions</h2>
+  <div class="row"><button class="w" id="a_iso">Isolate infected hosts</button></div>
+  <div class="row"><button id="a_creds">Reset AD credentials</button><button id="a_egress">Block egress / C2</button></div>
+  <div class="row"><button id="a_auto">Run XSOAR playbook</button><button id="a_ret">Hire IR retainer</button></div>
+  <div class="row"><button class="p" id="a_rest">Restore from backup</button></div>
+  <div class="row"><button id="a_note">Notify regulator</button><button class="d" id="a_pay">Pay ransom</button></div>
+  <div class="row"><button id="a_end">End and get report</button></div>
+ </div>
+ <div class="card"><h2>Selected node</h2><div id="sel" class="desc">Click a node on the map.</div></div>
+ <div class="card"><h2>Event log</h2><div id="log"></div></div>
+</section>
+</main>
+<script>
+const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg';
+const N=[['inet','Internet','NET',50,220,'ext',0],['fw','Firewall / VPN','FW',150,220,'edge',2],['mail','Email gateway','MX',150,80,'dmz',1],['web','Web / DMZ','WEB',150,360,'dmz',4],['ad','Active Directory','AD',320,220,'srv',8],['hr','HR PCs','HR',320,60,'usr',1.5],['fin','Finance PCs','FIN',320,140,'usr',3],['ops','Ops PCs','OPS',320,300,'usr',3],['it','IT PCs','IT',320,380,'usr',2],['file','File server','FS',500,90,'srv',6],['erp','ERP','ERP',500,200,'srv',12],['db','Database','DB',500,310,'srv',10],['bak','Backup','BAK',670,220,'bak',0]].map(a=>({id:a[0],n:a[1],c:a[2],x:a[3],y:a[4],seg:a[5],v:a[6]}));
+const L=[['inet','fw'],['fw','mail'],['fw','web'],['fw','ad'],['mail','hr'],['mail','fin'],['web','ad'],['ad','hr'],['ad','fin'],['ad','ops'],['ad','it'],['ad','file'],['ad','erp'],['ad','db'],['ad','bak'],['file','erp'],['erp','db'],['it','bak']];
+const SC={
+ phish:{n:'Phishing to ransomware',d:'A malicious attachment opens on an HR PC. The attacker moves through Active Directory and encrypts servers.',e:'hr',sp:.35,dw:6,ex:0,bk:.2,rn:250},
+ vpn:{n:'Compromised vendor VPN',d:'Stolen vendor credentials land the attacker on the firewall. Spread is fast and dwell time is short.',e:'fw',sp:.45,dw:4,ex:0,bk:.3,rn:400},
+ dbl:{n:'Double extortion',d:'Slow, quiet data theft first, encryption later. Regulatory exposure is the main risk.',e:'fin',sp:.3,dw:12,ex:15,bk:.2,rn:500},
+ bkp:{n:'Backup-targeted attack',d:'An exposed RDP host in the DMZ. The attacker hunts the backups before detonating.',e:'web',sp:.4,dw:8,ex:5,bk:.9,rn:350}};
+let cur='phish',S,feed=[],timer=null,poll=null,seen=new Set();
+const P=()=>({edr:+$('#edr').value,seg:+$('#seg').value,an:+$('#an').value,age:+$('#age').value,imm:$('#imm').checked});
+const IN=['inf','enc'],nm=id=>N.find(x=>x.id===id).n;
+const log=(m,c='')=>{S.log.push({t:S.t,m,c});const d=document.createElement('div');d.className=c;d.textContent='T+'+S.t+'h  '+m;$('#log').prepend(d)};
+function init(){
+ stop();S={t:0,n:{},det:null,ex:0,rep:100,sel:null,done:false,f:{nt:null},c:{down:0,ransom:0,ir:0,loss:0,fine:0},hist:[],log:[],dec:[],rep_:null};
+ N.forEach(x=>S.n[x.id]={st:'clean',iso:false,at:0,rt:0});
+ const e=SC[cur].e;S.n[e].st='inf';$('#log').innerHTML='';$('#report').hidden=true;
+ log('Scenario "'+SC[cur].n+'" started. Initial compromise: '+nm(e),'warn');
+ hist();render();
+}
+function hist(){const v=S.n,k=N.length-1;S.hist.push({t:S.t,i:N.filter(x=>v[x.id].st==='inf').length/k*100,e:N.filter(x=>v[x.id].st==='enc').length/k*100,iso:N.filter(x=>v[x.id].iso).length,x:S.ex,c:tot()})}
+const tot=()=>Object.values(S.c).reduce((a,b)=>a+b,0);
+function ev(e){
+ const s=S.n[e.node];if(e.event==='detect'){if(S.det==null){S.det=S.t;log('[TWIN] Detection event received','warn')}return}
+ if(!s)return;
+ if(e.event==='infected'&&s.st==='clean'){s.st='inf';s.at=S.t}
+ else if(e.event==='encrypted')s.st='enc';
+ else if(e.event==='isolate')s.iso=true;
+ else if(e.event==='clean'){s.st='clean';s.iso=false}
+ log('[TWIN] '+nm(e.node)+' reported as '+e.event,'warn');
+}
+function tick(){
+ if(S.done)return;S.t++;const p=P(),c=SC[cur],v=S.n;
+ feed.filter(e=>e.t===S.t).forEach(ev);
+ const bad=id=>IN.includes(v[id].st),news=new Set();
+ L.forEach(l=>[[l[0],l[1]],[l[1],l[0]]].forEach(([s,t])=>{
+  if(t==='inet'||s==='inet'||!bad(s)||v[s].iso||v[t].st!=='clean'||v[t].iso||news.has(t))return;
+  const A=N.find(x=>x.id===s),B=N.find(x=>x.id===t);let q;
+  if(t==='bak')q=p.imm?0:c.bk*(1-p.seg/100*.6);
+  else{q=c.sp*(1-p.edr/100*.65);if(A.seg!==B.seg)q*=1-p.seg/100*.7;q*=S.f.creds?.5:(bad('ad')?1.3:1)}
+  if(Math.random()<q)news.add(t);
+ }));
+ news.forEach(t=>{v[t].st='inf';v[t].at=S.t;log('Lateral movement: '+nm(t)+' infected','warn')});
+ N.forEach(x=>{const s=v[x.id];if(s.st==='inf'&&!s.iso&&!news.has(x.id)&&S.t-s.at>=c.dw){
+  if(Math.random()<p.edr/100*.35){s.iso=true;log('EDR blocked encryption on '+x.n+'; host quarantined','ok')}
+  else{s.st='enc';log(x.n+' ENCRYPTED','bad')}}});
+ const encN=N.filter(x=>v[x.id].st==='enc').length;
+ if(S.det==null&&Math.random()<.04+p.edr/100*.25+p.an*.03+(encN?.35:0)+(S.f.ret?.2:0)+(S.ex>20?.2:0)){S.det=S.t;log('SIEM alert: ransomware activity confirmed (detected at T+'+S.t+'h)','warn')}
+ if(c.ex&&!S.f.egress)S.ex+=c.ex*['file','db','erp'].filter(i=>bad(i)&&!v[i].iso).length;
+ if(S.f.auto&&S.det!=null)N.forEach(x=>{const s=v[x.id];if(IN.includes(s.st)&&!s.iso&&Math.random()<.6){s.iso=true;log('XSOAR playbook isolated '+x.n,'ok')}});
+ N.forEach(x=>{const s=v[x.id];if(s.st==='rest'&&--s.rt<=0){s.st='clean';s.iso=false;log(x.n+' restored and back online','ok')}});
+ let d=0;N.forEach(x=>{const s=v[x.id];d+=(s.st==='enc'||s.st==='rest')?x.v:s.iso?x.v*.6:0});S.c.down+=d;
+ S.rep=Math.max(0,S.rep-(encN*.25+(S.ex>0&&S.f.nt==null?.2:0)));
+ hist();
+ if(S.t>=72||!N.some(x=>['inf','enc','rest'].includes(v[x.id].st)))finish();
+ render();
+}
+function act(name,fn,tgt){if(S.done)return;fn();S.dec.push({t:S.t,a:name});log('Decision: '+name,'ok');
+ const u=$('#hook').value.trim();
+ if(u)fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:name,target:tgt||'all',hour:S.t,scenario:cur,cost_k:tot()})}).then(()=>setTw('Command sent: '+name)).catch(e=>setTw('Webhook error: '+e.message));
+ hist();render()}
+function restore(ids){
+ const p=P(),v=S.n,bk=v.bak.st!=='clean';
+ let t=ids.filter(i=>IN.includes(v[i].st)&&i!=='bak');
+ if(bk){t=t.filter(i=>N.find(x=>x.id===i).seg==='usr');log('Backups are compromised: only workstations can be rebuilt from the golden image. Servers cannot be recovered.','bad')}
+ if(!t.length){log('Nothing to restore.','warn');return}
+ const eff=1+p.an*.12+(S.f.ret?.5:0);
+ t.forEach(i=>{v[i].st='rest';v[i].rt=Math.ceil((4+N.find(x=>x.id===i).v/1.5)/eff)});
+ if(!bk&&!S.lossDone){S.c.loss+=p.age*4;S.lossDone=1;log('Data loss since last backup: about '+p.age+'h of transactions','warn')}
+}
+const targets=()=>N.filter(x=>IN.includes(S.n[x.id].st)).map(x=>x.id);
+function finish(){
+ if(S.done)return;S.done=true;stop();const p=P(),c=SC[cur];
+ if(S.ex>0){const m=S.f.nt==null?1:S.f.nt<=24?.2:S.f.nt<=72?.5:.8;S.c.fine=Math.round(300*Math.min(1,S.ex/100+.3)*m)}
+ const R=[];
+ if(S.det==null||S.det>12)R.push('Detection came late. Fund SIEM use cases for lateral movement and mass file changes, and raise EDR coverage.');
+ if(p.seg<50)R.push('Segmentation was weak ('+p.seg+'%). Set a policy that separates users, servers and backups.');
+ if(S.n.bak.st!=='clean'||(!p.imm&&c.bk>.5))R.push('Backups were exposed. Make immutable or offline backups a mandatory control.');
+ if(!S.f.auto)R.push('No SOAR automation ran. Approve pre-authorised isolation playbooks so analysts do not wait for sign-off.');
+ if(S.f.paid)R.push('A ransom was paid. Define who may authorise payment, with legal and sanctions review, before an incident.');
+ if(S.ex>0&&S.f.nt==null)R.push('Data was stolen and nobody was notified. Add a notification timeline to the IR policy.');
+ if(!R.length)R.push('Response was strong. Keep exercising this scenario every quarter.');
+ const sc=Math.max(0,Math.round(100-tot()/40-(S.det||72)/3));
+ S.rep_={scenario:c.n,hours:S.t,detected_at_h:S.det,exfil_gb:S.ex,total_cost_k_usd:Math.round(tot()),costs:S.c,reputation:Math.round(S.rep),resilience_score:sc,params:p,decisions:S.dec,recommendations:R,log:S.log};
+ const h=$('#report');h.hidden=false;
+ h.innerHTML='<h2>Decision report for management</h2><div class="kpis"><div class="k"><span>Total cost</span><b>$'+Math.round(tot())+'k</b></div><div class="k"><span>Detected at</span><b>'+(S.det==null?'never':'T+'+S.det+'h')+'</b></div><div class="k"><span>Data stolen</span><b>'+S.ex+' GB</b></div><div class="k"><span>Resilience score</span><b>'+sc+'/100</b></div></div><h3>Cost breakdown ($k)</h3><p class="desc">Downtime '+Math.round(S.c.down)+' | Ransom '+S.c.ransom+' | Response and tooling '+S.c.ir+' | Data loss '+S.c.loss+' | Regulatory fine '+S.c.fine+'</p><h3>Governance recommendations</h3><ul>'+R.map(r=>'<li>'+r+'</li>').join('')+'</ul>';
+ h.scrollIntoView({behavior:'smooth'});
+}
+function render(){
+ const v=S.n,cnt=s=>N.filter(x=>v[x.id].st===s).length,k=N.length-1,e=cnt('enc'),pct=e/k;
+ const st=S.done?'Closed':S.det==null?'Undetected':'Detected T+'+S.det+'h';
+ const K=[['Hour','T+'+S.t+'h'],['Status',st],['Infected',cnt('inf')+'/'+k],['Encrypted',e+'/'+k],['Isolated',N.filter(x=>v[x.id].iso).length],['Data stolen',S.ex+' GB'],['Cost','$'+Math.round(tot())+'k'],['Reputation',Math.round(S.rep)+'%'],['Ransom ask','$'+SC[cur].rn+'k']];
+ $('#kpis').innerHTML=K.map(a=>'<div class="k"><span>'+a[0]+'</span><b>'+a[1]+'</b></div>').join('');
+ const th=e===0&&!cnt('inf')?['none','var(--ok)']:pct<.15?['low','var(--ok)']:pct<.4?['elevated','var(--warn)']:pct<.65?['high','var(--bad)']:['critical','var(--bad)'];
+ const b=$('#threat');b.textContent='Threat: '+th[0];b.style.background=th[1];
+ N.forEach(x=>{const s=v[x.id];$('#n'+x.id).setAttribute('class','nd '+s.st+(s.iso?' iso':'')+(S.sel===x.id?' sel':''))});
+ L.forEach(l=>{const A=v[l[0]],B=v[l[1]],h=A.st!=='clean'&&B.st!=='clean'&&A.st!=='rest'&&B.st!=='rest'&&!A.iso&&!B.iso&&l[0]!=='inet';$('#l'+l[0]+l[1]).setAttribute('class','lk'+(h?' hot':''))});
+ const f=S.f,dn=S.done;
+ $('#a_creds').disabled=dn||f.creds;$('#a_egress').disabled=dn||f.egress;$('#a_auto').disabled=dn||f.auto;$('#a_ret').disabled=dn||f.ret;$('#a_note').disabled=dn||f.nt!=null;$('#a_pay').disabled=dn||f.paid||!e;$('#a_iso').disabled=dn;$('#a_rest').disabled=dn;
+ selPanel();chart();
+}
+function selPanel(){
+ const id=S.sel,el=$('#sel');if(!id){return}
+ const x=N.find(a=>a.id===id),s=S.n[id],lab={clean:'Clean',inf:'Infected',enc:'Encrypted',rest:'Restoring'}[s.st];
+ el.innerHTML='<b>'+x.n+'</b><br>Segment: '+x.seg+' | State: '+lab+(s.iso?' (isolated)':'')+' | Downtime cost: $'+x.v+'k/h<div class="row"><button id="s1">'+(s.iso?'Reconnect':'Isolate')+'</button><button id="s2">Restore this node</button></div>';
+ $('#s1').onclick=()=>act((s.iso?'Reconnect ':'Isolate ')+x.n,()=>{s.iso=!s.iso},x.id);
+ $('#s2').onclick=()=>act('Restore '+x.n,()=>restore([id]),x.id);
+}
+function chart(){
+ const h=S.hist,W=520,H=150,mx=Math.max(24,S.t),mc=Math.max(100,...h.map(p=>p.c));
+ const pl=(k,m)=>h.map(p=>((p.t/mx*(W-30))+25).toFixed(1)+','+(H-18-p[k]/m*(H-30)).toFixed(1)).join(' ');
+ $('#ch').innerHTML='<line x1="25" y1="132" x2="520" y2="132" stroke="var(--lnk)"/><polyline points="'+pl('i',100)+'" stroke="var(--warn)"/><polyline points="'+pl('e',100)+'" stroke="var(--bad)"/><polyline points="'+pl('c',mc)+'" stroke="var(--ac)" stroke-dasharray="4 3"/><text x="2" y="14" font-size="10" fill="var(--mut)">100%</text><text x="2" y="132" font-size="10" fill="var(--mut)">0</text><text x="400" y="146" font-size="10" fill="var(--mut)">hours (max $'+Math.round(mc)+'k)</text>';
+}
+function stop(){clearInterval(timer);timer=null;$('#go').textContent='Start';$('#go').classList.add('p')}
+function setTw(m){$('#tw').textContent=m}
+function dl(n,t,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function norm(e){return{t:+e.t||0,node:(e.node||'').trim().toLowerCase(),event:(e.event||'').trim().toLowerCase()}}
+function load(txt){
+ let o;try{o=JSON.parse(txt)}catch(_){
+  const ls=txt.trim().split(/\r?\n/),hd=ls.shift().split(',').map(s=>s.trim().toLowerCase());
+  o=ls.filter(Boolean).map(l=>{const c=l.split(',');const r={};hd.forEach((h,i)=>r[h]=(c[i]||'').trim());return r})}
+ let ev=Array.isArray(o)?o:o.events||[];
+ if(!Array.isArray(o)){if(o.scenario&&SC[o.scenario])cur=o.scenario;['edr','seg','an'].forEach(k=>{if(o[k]!=null)$('#'+k).value=o[k]});if(o.backupAge!=null)$('#age').value=o.backupAge;if(o.immutable!=null)$('#imm').checked=!!o.immutable}
+ feed=ev.map(norm).filter(e=>e.event);sync();init();setTw('Imported '+feed.length+' events. Press Start to replay them at their hour.');
+}
+function sync(){['edr','seg','an','age','sp'].forEach(k=>$('#'+k+'v').textContent=$('#'+k).value+(k==='edr'||k==='seg'?'%':k==='age'?' h':''));
+ document.querySelectorAll('.sc').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));$('#scd').textContent=SC[cur].d}
+/* build UI */
+(()=>{const g=id=>N.find(x=>x.id===id),svg=$('#net');
+ L.forEach(l=>{const A=g(l[0]),B=g(l[1]),e=document.createElementNS(NS,'line');e.id='l'+l[0]+l[1];e.setAttribute('x1',A.x);e.setAttribute('y1',A.y);e.setAttribute('x2',B.x);e.setAttribute('y2',B.y);e.setAttribute('class','lk');svg.appendChild(e)});
+ N.forEach(x=>{const e=document.createElementNS(NS,'g');e.id='n'+x.id;e.setAttribute('class','nd clean');e.innerHTML='<circle cx="'+x.x+'" cy="'+x.y+'" r="24"/><text class="c" x="'+x.x+'" y="'+(x.y+4)+'">'+x.c+'</text><text class="lb" x="'+x.x+'" y="'+(x.y+41)+'">'+x.n+'</text>';e.onclick=()=>{S.sel=x.id;render()};svg.appendChild(e)});
+ $('#inode').innerHTML=N.filter(x=>x.id!=='inet').map(x=>'<option value="'+x.id+'">'+x.n+'</option>').join('');
+ $('#scs').innerHTML=Object.keys(SC).map(k=>'<button class="sc" data-k="'+k+'">'+SC[k].n+'</button>').join('');
+ document.querySelectorAll('.sc').forEach(b=>b.onclick=()=>{cur=b.dataset.k;feed=[];sync();init()});
+})();
+['edr','seg','an','age','sp'].forEach(k=>$('#'+k).oninput=()=>{sync();if(k==='sp'&&timer){stop();run()}});
+function run(){timer=setInterval(tick,1300-$('#sp').value*220);$('#go').textContent='Pause';$('#go').classList.remove('p')}
+$('#go').onclick=()=>{if(S.done)init();timer?stop():run()};
+$('#step').onclick=()=>{if(!S.done)tick()};
+$('#rst').onclick=()=>{feed=[];init();setTw('Twin link idle.')};
+$('#theme').onclick=()=>{const d=document.documentElement,k=d.dataset.theme==='dark';d.dataset.theme=k?'light':'dark';$('#theme').textContent=k?'Dark mode':'Light mode'};
+$('#a_iso').onclick=()=>act('Isolate infected hosts',()=>{targets().forEach(i=>S.n[i].iso=true)});
+$('#a_creds').onclick=()=>act('Reset AD credentials',()=>{S.f.creds=1;S.c.ir+=5});
+$('#a_egress').onclick=()=>act('Block egress and C2',()=>{S.f.egress=1;S.c.ir+=3});
+$('#a_auto').onclick=()=>act('Run XSOAR containment playbook',()=>{S.f.auto=1;S.c.ir+=15});
+$('#a_ret').onclick=()=>act('Hire external IR retainer',()=>{S.f.ret=1;S.c.ir+=40});
+$('#a_rest').onclick=()=>act('Restore from backup',()=>restore(targets()));
+$('#a_note').onclick=()=>act('Notify regulator and customers',()=>{S.f.nt=S.t;S.rep=Math.max(0,S.rep-3)});
+$('#a_pay').onclick=()=>act('Pay ransom',()=>{S.f.paid=1;S.c.ransom+=SC[cur].rn;S.rep=Math.max(0,S.rep-10);
+ if(Math.random()<.6){N.forEach(x=>{if(S.n[x.id].st==='enc'){S.n[x.id].st='rest';S.n[x.id].rt=3}});log('Decryptor received and working. Systems recovering.','ok')}else log('Payment made but decryptor failed.','bad')});
+$('#a_end').onclick=()=>{finish();render()};
+$('#imp').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{load(r.result)}catch(x){setTw('Import failed: '+x.message)}};r.readAsText(f);e.target.value=''};
+$('#smp').onclick=()=>dl('ransomsim-sample.json',JSON.stringify({scenario:'phish',edr:50,seg:40,an:3,backupAge:12,immutable:true,events:[{t:3,node:'fin',event:'infected'},{t:6,node:'ad',event:'infected'},{t:10,node:'file',event:'encrypted'},{t:11,node:'',event:'detect'}]},null,2),'application/json');
+$('#ex1').onclick=()=>dl('ransomsim-timeline.csv','hour,infected_pct,encrypted_pct,isolated_nodes,exfil_gb,cost_k_usd\n'+S.hist.map(p=>[p.t,p.i.toFixed(1),p.e.toFixed(1),p.iso,p.x,Math.round(p.c)].join(',')).join('\n'),'text/csv');
+$('#ex2').onclick=()=>{if(!S.rep_){finish();render()}dl('ransomsim-report.json',JSON.stringify(S.rep_,null,2),'application/json')};
+$('#inj').onclick=()=>{ev({node:$('#inode').value,event:$('#iev').value});render()};
+$('#live').onclick=()=>{
+ if(poll){clearInterval(poll);poll=null;$('#live').textContent='Start live feed';return setTw('Live feed stopped.')}
+ const u=$('#feed').value.trim();if(!u)return setTw('Enter a feed URL first, or use "Inject a SIEM event".');
+ const go=async()=>{try{const j=await(await fetch(u)).json();(Array.isArray(j)?j:j.events||[]).forEach(e=>{const k=JSON.stringify(e);if(seen.has(k))return;seen.add(k);ev(norm(e))});render();setTw('Live feed OK at '+new Date().toLocaleTimeString())}catch(x){setTw('Live feed error: '+x.message+' (check the URL and CORS)')}};
+ go();poll=setInterval(go,5000);$('#live').textContent='Stop live feed';
+};
+sync();init();
+</script>
+</body>
+</html>
