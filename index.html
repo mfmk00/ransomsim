@@ -168,16 +168,16 @@ function tick(){
 }
 function act(name,fn,tgt){if(S.done)return;fn();S.dec.push({t:S.t,a:name});log('Decision: '+name,'ok');
  const u=$('#hook').value.trim();
- if(u)fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:name,target:tgt||'all',hour:S.t,scenario:cur,cost_k:tot()})}).then(()=>setTw('Command sent: '+name)).catch(e=>setTw('Webhook error: '+e.message));
+ if(u)fetch(u,{method:'POST',mode:'no-cors',body:JSON.stringify({action:name,target:tgt||'all',hour:S.t,scenario:cur,cost_k:tot()})}).then(()=>setTw('Command sent: '+name)).catch(e=>setTw('Webhook error: '+e.message));
  hist();render()}
 function restore(ids){
  const p=P(),v=S.n,bk=v.bak.st!=='clean';
  let t=ids.filter(i=>IN.includes(v[i].st)&&i!=='bak');
  if(bk){t=t.filter(i=>N.find(x=>x.id===i).seg==='usr');log('Backups are compromised: only workstations can be rebuilt from the golden image. Servers cannot be recovered.','bad')}
  if(!t.length){log('Nothing to restore.','warn');return}
- const eff=1+p.an*.12+(S.f.ret?.5:0);
+ const eff=1+p.an*.12+(S.f.ret?.5:0),hadEnc=t.some(i=>v[i].st==='enc');
  t.forEach(i=>{v[i].st='rest';v[i].rt=Math.ceil((4+N.find(x=>x.id===i).v/1.5)/eff)});
- if(!bk&&!S.lossDone){S.c.loss+=p.age*4;S.lossDone=1;log('Data loss since last backup: about '+p.age+'h of transactions','warn')}
+ if(!bk&&!S.lossDone&&hadEnc){S.c.loss+=p.age*4;S.lossDone=1;log('Data loss since last backup: about '+p.age+'h of transactions','warn')}
 }
 const targets=()=>N.filter(x=>IN.includes(S.n[x.id].st)).map(x=>x.id);
 function finish(){
